@@ -1,5 +1,5 @@
 import React from "react";
-
+import ServiceCard from "./_component/ServiceCard";
 
 const getAllServices = async () => {
   // const getParams = new URLSearchParams(searchParams).toString();
@@ -16,10 +16,18 @@ const getAllServices = async () => {
   const data = await res.json();
   return data;
 };
-const servicesPage =async () => {
+const servicesPage = async () => {
   const services = await getAllServices();
-  console.log(services)
-  return <div>ssssss</div>;
+  console.log(services);
+  return (
+    <div>
+      <div className="grid grid-cols-3 gap-4">
+        {services?.data?.map((service) => {
+          return <ServiceCard service={service} key={service?._id} />;
+        })}
+      </div>
+    </div>
+  );
 };
 
 export default servicesPage;
