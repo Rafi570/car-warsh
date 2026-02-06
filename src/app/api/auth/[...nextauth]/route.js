@@ -1,12 +1,15 @@
-import NextAuth from "next-auth"
-import GithubProvider from "next-auth/providers/github"
+import { dbConnect } from "@/lib/dbConnect";
+import NextAuth from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcrypt";
+
 
 export const authOptions = {
   // Configure one or more authentication providers
   providers: [
- CredentialsProvider({
-    // The name to display on the sign in form (e.g. 'Sign in with...')
-   name: "Credentials <3",
+    CredentialsProvider({
+      //   Sign in with {}
+      name: "Credentials <3",
 
       credentials: {
         email: {
@@ -18,32 +21,38 @@ export const authOptions = {
           label: "Password",
           type: "password",
           placeholder: "Your password",
-        }
-    },
-    async authorize(credentials, req) {
-      // You need to provide your own logic here that takes the credentials
-      // submitted and returns either a object representing a user or value
-      // that is false/null if the credentials are invalid.
-      // e.g. return { id: 1, name: 'J Smith', email: 'jsmith@example.com' }
-      // You can also use the `req` object to obtain additional parameters
-      // (i.e., the request IP address)
-      const res = await fetch("/your/endpoint", {
-        method: 'POST',
-        body: JSON.stringify(credentials),
-        headers: { "Content-Type": "application/json" }
-      })
-      const user = await res.json()
+        },
+      },
+      async authorize(credentials, req) {
+        // Step 1: working with my DB to find user by email
 
-      // If no error and we have user data, return it
-      if (res.ok && user) {
-        return user
-      }
-      // Return null if user data could not be retrieved
-      return null
-    }
-  })
+        console.log(credentials, "credentials");
+
+        const userCollection = await dbConnect("users");
+        const user = await userCollection.findOne({ email: credentials.email });
+
+        if (!user) {
+          return null;
+        }
+
+        const isPasswordValid = await bcrypt.compare(
+          credentials.password,
+          user.password
+        );
+
+        if (!isPasswordValid) {
+          return null;
+        }
+
+        return user;
+      },
+    }),
+
+
   ],
-}
+
+
+};
 
 const handler = NextAuth(authOptions);
 
