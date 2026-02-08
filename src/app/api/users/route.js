@@ -1,5 +1,5 @@
 import { dbConnect } from "@/lib/dbConnect";
-// import bcrypt from "bcrypt";
+import bcrypt from "bcrypt";
 
 const users = await dbConnect("users");
 
